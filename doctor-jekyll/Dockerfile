@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     ruby-full \
     ruby-dev && \
-    ruby -S gem install jekyll kramdown jekyll-paginate pygments.rb
+    ruby -S gem install jekyll kramdown jekyll-paginate jekyll-gist
 
 WORKDIR /src
 
