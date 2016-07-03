@@ -1,0 +1,450 @@
+#!/bin/bash
+
+#
+# derived from lxc's debian template
+#
+
+
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+# Make sure the usual locations are in PATH
+export PATH=$PATH:/usr/sbin:/usr/bin:/sbin:/bin
+export GREP_OPTIONS=""
+
+MIRROR=${MIRROR:-http://archive.debian.org/debian}
+LOCALSTATEDIR="@LOCALSTATEDIR@"
+# Allows the lxc-cache directory to be set by environment variable
+CACHE_PATH=${CACHE_PATH:-"$LOCALSTATEDIR/cache"}
+
+configure_debian()
+{
+    rootfs=$1
+    hostname=$2
+
+    # configure the network using the dhcp
+    cat <<EOF > $rootfs/etc/network/interfaces
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet dhcp
+EOF
+
+    # set the hostname
+    cat <<EOF > $rootfs/etc/hostname
+$hostname
+EOF
+
+    return 0
+}
+
+write_sourceslist()
+{
+    local rootfs="$1";  shift
+    local release="$1"; shift
+    local arch="$1";    shift
+
+    local prefix="deb"
+    if [ -n "${arch}" ]; then
+        prefix="deb [arch=${arch}]"
+    fi
+
+    if [ "$mainonly" = 1 ]; then
+      non_main=''
+    else
+      non_main=' contrib non-free'
+    fi
+
+    cat >> "${rootfs}/etc/apt/sources.list" << EOF
+${prefix} $MIRROR          ${release}         main${non_main}
+EOF
+
+}
+
+
+# Check if given path is in a btrfs partition
+is_btrfs()
+{
+    [ -e $1 -a $(stat -f -c '%T' $1) = "btrfs" ]
+}
+
+# Check if given path is the root of a btrfs subvolume
+is_btrfs_subvolume()
+{
+    [ -d $1 -a $(stat -f -c '%T' $1) = "btrfs" -a $(stat -c '%i' $1) -eq 256 ]
+}
+
+try_mksubvolume()
+{
+    path=$1
+    [ -d $path ] && return 0
+    mkdir -p $(dirname $path)
+    if which btrfs >/dev/null 2>&1 && is_btrfs $(dirname $path); then
+        btrfs subvolume create $path
+    else
+        mkdir -p $path
+    fi
+}
+
+try_rmsubvolume()
+{
+    path=$1
+    [ -d $path ] || return 0
+    if which btrfs >/dev/null 2>&1 && is_btrfs_subvolume $path; then
+        btrfs subvolume delete $path
+    else
+        rm -rf $path
+    fi
+}
+
+cleanup()
+{
+    try_rmsubvolume $cache/partial-$release-$arch
+    try_rmsubvolume $cache/rootfs-$release-$arch
+}
+
+download_debian()
+{
+    cache=$1
+    arch=$2
+    release=$3
+
+    trap cleanup EXIT SIGHUP SIGINT SIGTERM
+
+    # Create the cache
+    mkdir -p "$cache"
+
+    # If debian-archive-keyring isn't installed, fetch GPG keys directly
+    releasekeyring=/usr/share/keyrings/debian-archive-keyring.gpg
+    if [ ! -f $releasekeyring ]; then
+        releasekeyring="$cache/archive-key.gpg"
+        case $release in
+            "etch")
+                gpgkeyname="archive-key-5.0"
+                ;;
+            "sarge")
+                gpgkeyname="archive-key-4.0"
+                ;;
+            *)
+                gpgkeyname="archive-key-5.0"
+                ;;
+        esac
+
+
+        wget https://ftp-master.debian.org/keys/${gpgkeyname}.asc -O - --quiet \
+            | gpg --import --no-default-keyring --keyring=${releasekeyring}
+    fi
+    # check the mini debian was not already downloaded
+    try_mksubvolume "$cache/partial-$release-$arch"
+    if [ $? -ne 0 ]; then
+        echo "Failed to create '$cache/partial-$release-$arch' directory"
+        return 1
+    fi
+
+    # download a mini debian into a cache
+    echo "Downloading debian minimal ..."
+
+        debootstrap --verbose --variant=minbase --arch=$arch \
+            --keyring=${releasekeyring} \
+            "$release" "$cache/partial-$release-$arch" $MIRROR
+        if [ $? -ne 0 ]; then
+            echo "Failed to download the rootfs, aborting."
+            return 1
+        fi
+
+    mv "$1/partial-$release-$arch" "$1/rootfs-$release-$arch"
+    echo "Download complete."
+    trap EXIT
+    trap SIGINT
+    trap SIGTERM
+    trap SIGHUP
+
+    return 0
+}
+
+copy_debian()
+{
+    cache=$1
+    arch=$2
+    rootfs=$3
+    release=$4
+
+    # make a local copy of the minidebian
+    echo "Copying rootfs to $rootfs..."
+    try_mksubvolume $rootfs
+    if which btrfs >/dev/null 2>&1 && \
+       is_btrfs_subvolume "$cache/rootfs-$release-$arch" && \
+       is_btrfs_subvolume $rootfs; then
+      realrootfs=$(dirname $config)/rootfs
+      umount $rootfs || return 1
+      btrfs subvolume delete $realrootfs || return 1
+      btrfs subvolume snapshot "$cache/rootfs-$release-$arch" $realrootfs || return 1
+      [ "$rootfs" = "$realrootfs" ] || mount --bind $realrootfs $rootfs || return 1
+    else
+        rsync -Ha "$cache/rootfs-$release-$arch"/ $rootfs/ || return 1
+    fi
+    return 0
+}
+
+install_debian()
+{
+    rootfs=$1
+    release=$2
+    arch=$3
+    cache="$4/debian"
+    flushcache=$5
+    mkdir -p $LOCALSTATEDIR/lock/subsys/
+    (
+        flock -x 9
+        if [ $? -ne 0 ]; then
+            echo "Cache repository is busy."
+            return 1
+        fi
+
+        if [ $flushcache -eq 1 ]; then
+            echo "Flushing cache..."
+            cleanup
+        fi
+
+        echo "Checking cache download in $cache/rootfs-$release-$arch ... "
+        if [ ! -e "$cache/rootfs-$release-$arch" ]; then
+            #download_debian $cache $arch $release "$interpreter" "$interpreter_path"
+            download_debian $cache $arch $release
+            if [ $? -ne 0 ]; then
+                echo "Failed to download 'debian base'"
+                return 1
+            fi
+        fi
+
+        copy_debian $cache $arch $rootfs $release
+        if [ $? -ne 0 ]; then
+            echo "Failed to copy rootfs"
+            return 1
+        fi
+
+       return 0
+
+        ) 9>$LOCALSTATEDIR/lock/subsys/debian
+
+    return $?
+}
+
+post_process()
+{
+    local rootfs="$1";  shift
+    local release="$1"; shift
+
+    write_sourceslist ${rootfs} ${release}
+
+}
+
+clean()
+{
+    cache=${CACHE_PATH:-"$LOCALSTATEDIR/cache/debian"}
+
+    if [ ! -e $cache ]; then
+        exit 0
+    fi
+
+    # lock, so we won't purge while someone is creating a repository
+    (
+        flock -x 9
+        if [ $? != 0 ]; then
+            echo "Cache repository is busy."
+            exit 1
+        fi
+
+        echo -n "Purging the download cache..."
+        rm --preserve-root --one-file-system -rf $cache && echo "Done." || exit 1
+        exit 0
+
+    ) 9>$LOCALSTATEDIR/lock/subsys/debian
+}
+
+
+
+clean()
+{
+    cache=${CACHE_PATH:-"$LOCALSTATEDIR/cache"}
+
+    if [ ! -e $cache ]; then
+        exit 0
+    fi
+
+    # lock, so we won't purge while someone is creating a repository
+    (
+        flock -x 9
+        if [ $? != 0 ]; then
+            echo "Cache repository is busy."
+            exit 1
+        fi
+
+        echo -n "Purging the download cache..."
+        rm --preserve-root --one-file-system -rf $cache && echo "Done." || exit 1
+        exit 0
+
+    ) 9>$LOCALSTATEDIR/lock/subsys/debian
+}
+
+usage()
+{
+    cat <<EOF
+Usage: $1 -h|--help -p|--path=<path> [-c|--clean] [-a|--arch=<arch>] [-r|--release=<release>]
+                                     [--mirror=<mirror>]
+                                     [-F | --flush-cache]
+
+Options :
+
+  -h, --help             print this help text
+  -p, --path=PATH        directory where config and rootfs of this VM will be kept
+  -a, --arch=ARCH        The container architecture. Can be one of: i686, x86_64,
+                         amd64, armhf, armel, powerpc. Defaults to host arch.
+  -r, --release=RELEASE  Debian release. Can be one of: etch, sarge.
+  --mirror=MIRROR        Debian mirror to use during installation. Overrides the MIRROR
+                         environment variable (see below).
+  -c, --clean            only clean up the cache and terminate
+  --enable-non-free      include also Debian's contrib and non-free repositories.
+  -F | --flush-cache     Flush the debian release cache
+
+Environment variables:
+
+  MIRROR                 The Debian package mirror to use. See also the --mirror switch above.
+                         Defaults to '$MIRROR'
+
+EOF
+    return 0
+}
+
+options=$(getopt -o hp:n:a:r:F -l arch:,clean,help,enable-non-free,mirror:,name:,path:,release:,rootfs:,flush-cache -- "$@")
+if [ $? -ne 0 ]; then
+        usage $(basename $0)
+        exit 1
+fi
+eval set -- "$options"
+
+arch=$(uname -m)
+if [ "$arch" = "i686" ]; then
+    arch="i386"
+elif [ "$arch" = "x86_64" ]; then
+    arch="i386"
+fi
+
+hostarch=$arch
+mainonly=1
+flushcache=0
+
+while true
+do
+    case "$1" in
+        -h|--help)            usage $0 && exit 1;;
+           --)                shift 1; break ;;
+
+        -a|--arch)            arch=$2; shift 2;;
+        -c|--clean)           clean=1; shift 1;;
+           --enable-non-free) mainonly=0; shift 1;;
+           --mirror)          MIRROR=$2; shift 2;;
+        -n|--name)            name=$2; shift 2;;
+           --packages)        packages=$2; shift 2;;
+        -p|--path)            path=$2; shift 2;;
+        -r|--release)         release=$2; shift 2;;
+           --rootfs)          rootfs=$2; shift 2;;
+        -F|--flush-cache)     flushcache=1; shift 1;;
+        *)                    break ;;
+    esac
+done
+
+if [ ! -z "$clean" -a -z "$path" ]; then
+    clean || exit 1
+    exit 0
+fi
+
+if [ "$arch" = "i686" ]; then
+    arch=i386
+fi
+
+if [ "$arch" = "x86_64" ]; then
+    arch=amd64
+fi
+
+if [ $hostarch = "i386" -a $arch = "amd64" ]; then
+    echo "can't create $arch container on $hostarch"
+    exit 1
+fi
+
+if [ $hostarch = "armhf" -o $hostarch = "armel" ] && \
+   [ $arch != "armhf" -a $arch != "armel" ]; then
+    echo "can't create $arch container on $hostarch"
+    exit 1
+fi
+
+if [ $hostarch = "powerpc" -a $arch != "powerpc" ]; then
+    echo "can't create $arch container on $hostarch"
+    exit 1
+fi
+
+type debootstrap
+if [ $? -ne 0 ]; then
+    echo "'debootstrap' command is missing"
+    exit 1
+fi
+
+if [ -z "$path" ]; then
+    echo "'path' parameter is required"
+    exit 1
+fi
+
+if [ -z "$name" ]; then
+    echo "'name' parameter is required"
+    exit 1
+fi
+
+
+if [ "$(id -u)" != "0" ]; then
+    echo "This script should be run as 'root'"
+    exit 1
+fi
+
+current_release="etch"
+release=${release:-${current_release}}
+valid_releases=('etch' 'sarge')
+if [[ ! "${valid_releases[*]}" =~ (^|[^[:alpha:]])$release([^[:alpha:]]|$) ]]; then
+    echo "Invalid release ${release}, valid ones are: ${valid_releases[*]}"
+    exit 1
+fi
+
+# detect rootfs
+config="$path"
+if [ -z "$rootfs" ]; then
+    rootfs=$path
+fi
+
+install_debian $rootfs $release $arch $CACHE_PATH $flushcache
+if [ $? -ne 0 ]; then
+    echo "failed to install debian"
+    exit 1
+fi
+
+configure_debian $rootfs $name
+if [ $? -ne 0 ]; then
+    echo "failed to configure debian for a container"
+    exit 1
+fi
+
+post_process ${rootfs} ${release}
+
+if [ ! -z "$clean" ]; then
+    clean || exit 1
+    exit 0
+fi
