@@ -274,30 +274,6 @@ clean()
 }
 
 
-
-clean()
-{
-    cache=${CACHE_PATH:-"$LOCALSTATEDIR/cache"}
-
-    if [ ! -e $cache ]; then
-        exit 0
-    fi
-
-    # lock, so we won't purge while someone is creating a repository
-    (
-        flock -x 9
-        if [ $? != 0 ]; then
-            echo "Cache repository is busy."
-            exit 1
-        fi
-
-        echo -n "Purging the download cache..."
-        rm --preserve-root --one-file-system -rf $cache && echo "Done." || exit 1
-        exit 0
-
-    ) 9>$LOCALSTATEDIR/lock/subsys/debian
-}
-
 usage()
 {
     cat <<EOF
