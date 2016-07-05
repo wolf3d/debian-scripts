@@ -2,7 +2,7 @@
 
 apt-get update && apt-get install -y \
 build-essential cmake pkg-config \
-ibjpeg-dev libtiff5-dev libjasper-dev libpng12-dev \
+libjpeg-dev libtiff5-dev libjasper-dev libpng12-dev \
 libgtk2.0-dev openexr libopenexr6 libopenexr-dev \
 libatlas-base-dev gfortran \
 libtbb2 libtbb-dev zlib1g-dbg zlib1g zlib1g-dev \
