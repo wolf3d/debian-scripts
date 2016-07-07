@@ -23,5 +23,5 @@ cmake -D CMAKE_BUILD_TYPE=RELEASE \
 -D BUILD_EXAMPLES=ON ../opencv && \
 make -j4 && make install && \
 ldconfig && \
-ls -l /usr/local/lib/python3.4/site-packages/ && \
+ls -lrta /usr/local/lib/python3.4/ && \
 make clean
