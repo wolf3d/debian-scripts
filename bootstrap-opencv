@@ -6,8 +6,8 @@ libjpeg-dev libtiff5-dev libjasper-dev libpng12-dev \
 libgtk2.0-dev openexr libopenexr6 libopenexr-dev \
 libatlas-base-dev gfortran \
 libtbb2 libtbb-dev zlib1g-dbg zlib1g zlib1g-dev \
-python2.7-dev wget curl unzip bzip2 git && \
-wget https://bootstrap.pypa.io/get-pip.py && python2.7 get-pip.py && \
+python3-dev wget curl unzip bzip2 git && \
+wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py && \
 pip install numpy && \
 mkdir setup && cd $_ && \
 git clone https://github.com/Itseez/opencv.git && \
@@ -18,10 +18,11 @@ cmake -D CMAKE_BUILD_TYPE=RELEASE \
 -D WITH_OPENEXR=ON \
 -D INSTALL_PYTHON_EXAMPLES=ON \
 -D BUILD_PYTHON_SUPPORT=ON \
+-D WITH_IPP=ON \
 -D WITH_TBB=ON \
 -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
 -D BUILD_EXAMPLES=ON ../opencv && \
 make -j4 && make install && \
 ldconfig && \
-ls -l /usr/local/lib/python2.7/site-packages/ && \
+ls -lrta /usr/local/lib/python3.4/* && \
 make clean
