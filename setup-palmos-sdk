@@ -1,0 +1,56 @@
+#!/bin/bash
+
+PALMPACKS="git://github.com/wolf3d/palmdev"
+
+download_packages() {
+
+cd /root/ && \
+echo "deb http://archive.debian.org/debian/ \
+etch main non-free contrib" > /etc/apt/sources.list && \
+apt-get update && apt-get install -y gcc-2.95 g++-2.95 \
+alien unzip tar cogito git-core curl build-essential && \
+git clone $PALMPACKS && return 0 || return 1
+
+}
+
+setup_packages() {
+cd /usr/bin
+
+GCC=$(readlink gcc | sed 1q 2> /dev/null)
+
+if [ "$GCC" = "gcc-4.1" ]; then
+
+    if [ -f "gcc-2.95" ]; then
+
+        ls -rtal
+        echo "removing symbolic link gcc" && \
+        rm gcc && \
+        echo "symbolic link gcc removed" && \
+        echo "creating symbolic link gcc to gcc-2.95" && \
+        ln -s gcc-2.95 gcc && \
+        echo "symbolic link gcc created"
+
+    else
+        
+        echo "gcc-2.95 does not exist, aborting"
+        return 1
+
+    fi
+
+else
+
+    echo "symbolic link gcc does not point to gcc-4.1, please check current setup, aborting"
+    return 1
+
+fi
+
+}
+
+download_packages
+
+if [ $? -ne 0 ]; then
+    echo "failed to download packages"
+    exit 1
+fi
+
+#vim:ts=4
