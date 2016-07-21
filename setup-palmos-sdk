@@ -50,15 +50,18 @@ fi
 download_packages
 
 if [ $? -ne 0 ]; then
-    echo "failed to download packages"
+    echo "failed to download packages... exiting"
     exit 1
+else
+    echo "packages have been downloaded!"
 fi
-
 
 setup_packages
 if [ $? -ne 0 ]; then
-    echo "failed to setup packages"
+    echo "failed to setup packages... exiting"
     exit 1
+else
+    echo "packages have beensetup"
 fi
 
 #vim:ts=4
