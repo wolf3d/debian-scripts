@@ -22,13 +22,14 @@ if [ "$GCC" = "gcc-4.1" ]; then
 
     if [ -f "gcc-2.95" ]; then
 
-        ls -rtal
+        ls -rtal *gcc* && \
         echo "removing symbolic link gcc" && \
         rm gcc && \
         echo "symbolic link gcc removed" && \
         echo "creating symbolic link gcc to gcc-2.95" && \
         ln -s gcc-2.95 gcc && \
-        echo "symbolic link gcc created"
+        echo "symbolic link gcc created" && \
+        ls -rtal *gcc*
 
     else
         
