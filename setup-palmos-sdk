@@ -53,4 +53,11 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+
+setup_packages
+if [ $? -ne 0 ]; then
+    echo "failed to setup packages"
+    exit 1
+fi
+
 #vim:ts=4
