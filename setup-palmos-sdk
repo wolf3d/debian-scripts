@@ -24,8 +24,9 @@ setup_sdk.3.1() {
 
 cd "$WDIR"/setup.3.1 && tar xvzf sdk-3.1.tar.gz && \
 mkdir -p /opt/palmdev/ && mv sdk-3.1/ /opt/palmdev/ && \
-ln -s sdk-3.1 sdk && cd /usr/local/palmdev && \
-ln -s /opt/palmdev/sdk-3.1 sdk && return 0 || return 1
+ln -s sdk-3.1 sdk && mkdir -p /usr/local/palmdev && \
+cd /usr/local/palmdev && ln -s /opt/palmdev/sdk-3.1 sdk && \
+return 0 || return 1
 
 }
 
