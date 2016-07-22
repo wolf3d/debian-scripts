@@ -1,0 +1,128 @@
+#!/bin/bash
+
+PALMPACKS="git://github.com/wolf3d/palmdev"
+WDIR=""
+
+download_packages() {
+
+cd /root/ && \
+echo "deb http://archive.debian.org/debian/ \
+etch main non-free contrib" > /etc/apt/sources.list && \
+apt-get update && apt-get install -y gcc-2.95 g++-2.95 \
+alien unzip tar cogito git-core curl build-essential && \
+git clone $PALMPACKS && cd palmdev && WDIR=$(pwd) && \
+return 0 || return 1
+
+}
+
+
+setup_sdk.4.0() {
+:
+}
+
+setup_sdk.3.1() {
+
+cd "$WDIR"/setup.3.1 && tar xvzf sdk-3.1.tar.gz && \
+mkdir -p /opt/palmdev/ && mv sdk-3.1/ /opt/palmdev/ && \
+cd /opt/palmdev/ && ln -s sdk-3.1 sdk && \
+mkdir -p /usr/local/palmdev && cd /usr/local/palmdev && \
+ln -s /opt/palmdev/sdk-3.1 sdk && \
+return 0 || return 1
+
+}
+
+setup_prc_tools() {
+
+cd "$WDIR"/common && alien -i -v prc-tools-2.0.90-1.Linux-i386.rpm && \
+tar xvzf pilrc-2.8p7.tar.gz && cd pilrc-2.8p7 && \
+./configure && make && make install && return 0 || return 1
+
+}
+
+setup_resource_compiler() {
+
+cd "$WDIR"/common && tar xvzf pilrc-2.8p7.tar.gz && \
+cd pilrc-2.8p7 && ./configure && make && make install && \
+return 0 || return 1
+
+}
+
+
+
+setup_gcc() { 
+
+cd /usr/bin
+
+GCC=$(readlink gcc | sed 1q 2> /dev/null)
+
+if [ "$GCC" = "gcc-4.1" ]; then
+
+    if [ -f "gcc-2.95" ]; then
+
+        ls -rtal *gcc* && \
+        echo "removing symbolic link gcc" && \
+        rm gcc && \
+        echo "symbolic link gcc removed" && \
+        echo "creating symbolic link gcc to gcc-2.95" && \
+        ln -s gcc-2.95 gcc && \
+        echo "symbolic link gcc created" && \
+        ls -rtal *gcc*
+
+    else
+        
+        echo "gcc-2.95 does not exist, aborting"
+        return 1
+
+    fi
+
+else
+
+    echo "symbolic link gcc does not point to gcc-4.1, please check current setup, aborting"
+    return 1
+
+fi
+
+}
+
+download_packages
+
+if [ $? -ne 0 ]; then
+    echo "failed to download packages... exiting"
+    exit 1
+else
+    echo "packages have been downloaded!"
+fi
+
+setup_gcc
+if [ $? -ne 0 ]; then
+    echo "failed to setup packages... exiting"
+    exit 1
+else
+    echo "packages have been setup"!
+fi
+
+setup_sdk.3.1
+if [ $? -ne 0 ]; then
+    echo "failed to setup sdk.3.1... exiting"
+    exit 1
+else
+    echo "sdk.3.1 has been setup!"
+fi
+
+setup_prc_tools
+if [ $? -ne 0 ]; then
+    echo "failed to setup prc-tools... exiting"
+    exit 1
+else
+    echo "prc-tools have been setup!"
+fi
+
+setup_resource_compiler
+if [ $? -ne 0 ]; then
+    echo "failed to setup palm resource compiler... exiting"
+    exit 1
+else
+    echo "palm resource compiler has been setup!"
+fi
+
+#vim:ts=4
