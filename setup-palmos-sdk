@@ -10,7 +10,7 @@ echo "deb http://archive.debian.org/debian/ \
 etch main non-free contrib" > /etc/apt/sources.list && \
 apt-get update && apt-get install -y gcc-2.95 g++-2.95 \
 alien unzip tar cogito git-core curl build-essential && \
-git clone $PALMPACKS && WDIR=$(pwd) && \
+git clone $PALMPACKS && cd palmdev && WDIR=$(pwd) && \
 return 0 || return 1
 
 }
