@@ -1,6 +1,7 @@
 #!/bin/bash
 
 PALMPACKS="git://github.com/wolf3d/palmdev"
+WDIR=""
 
 download_packages() {
 
@@ -9,11 +10,45 @@ echo "deb http://archive.debian.org/debian/ \
 etch main non-free contrib" > /etc/apt/sources.list && \
 apt-get update && apt-get install -y gcc-2.95 g++-2.95 \
 alien unzip tar cogito git-core curl build-essential && \
-git clone $PALMPACKS && return 0 || return 1
+git clone $PALMPACKS && WDIR=$(PWD) && \
+return 0 || return 1
 
 }
 
-setup_packages() {
+
+setup_sdk.4.0() {
+:
+}
+
+setup_sdk.3.1() {
+
+cd "$WDIR"/setup.3.1 && tar xvzf sdk-3.1.tar.gz && \
+mkdir -p /opt/palmdev/ && mv sdk-3.1/ /opt/palmdev/ && \
+ln -s sdk-3.1 sdk && cd /usr/local/palmdev && \
+ln -s /opt/palmdev/sdk-3.1 sdk && return 0 || return 1
+
+}
+
+setup_prc_tools() {
+
+cd "$WDIR"/common && alien -i -v prc-tools-2.0.90-1.Linux-i386.rpm && \
+tar xvzf pilrc-2.8p7.tar.gz && cd pilrc-2.8p7 && \
+./configure && make && make install && return 0 || return 1
+
+}
+
+setup_resource_compiler() {
+
+cd "$WDIR"/common && tar xvzf pilrc-2.8p7.tar.gz && \
+cd pilrc-2.8p7 && ./configure && make && make install && \
+return 0 || return 1
+
+}
+
+
+
+setup_gcc() { 
+
 cd /usr/bin
 
 GCC=$(readlink gcc | sed 1q 2> /dev/null)
@@ -56,12 +91,37 @@ else
     echo "packages have been downloaded!"
 fi
 
-setup_packages
+setup_gcc
 if [ $? -ne 0 ]; then
     echo "failed to setup packages... exiting"
     exit 1
 else
-    echo "packages have beensetup"
+    echo "packages have been setup"!
+fi
+
+setup_sdk.3.1
+if [ $? -ne 0 ]; then
+    echo "failed to setup sdk.3.1... exiting"
+    exit 1
+else
+    echo "sdk.3.1 has been setup!"
+fi
+
+setup_prc_tools
+if [ $? -ne 0 ]; then
+    echo "failed to setup prc-tools... exiting"
+    exit 1
+else
+    echo "prc-tools have been setup!"
+}
+fi
+
+setup_resource_compiler
+if [ $? -ne 0 ]; then
+    echo "failed to setup palm resource compiler... exiting"
+    exit 1
+else
+    echo "palm resource compiler has been setup!"
 fi
 
 #vim:ts=4
