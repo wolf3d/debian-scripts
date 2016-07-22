@@ -114,7 +114,6 @@ if [ $? -ne 0 ]; then
     exit 1
 else
     echo "prc-tools have been setup!"
-}
 fi
 
 setup_resource_compiler
