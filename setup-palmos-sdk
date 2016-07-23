@@ -50,7 +50,7 @@ return 0 || return 1
 setup_txt2bitm() {
 
 cd "$WDIR"/common && gcc -o txt2bitm txt2bitm.c && \
-cp txt2bitm /usr/local/bin/ && \\
+cp txt2bitm /usr/local/bin/ && \
 return 0 || return 1
 
 }
