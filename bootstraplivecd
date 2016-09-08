@@ -6,6 +6,6 @@
 # into distro with desktop, since I am burning debian-live-x.x.x-amd64-lxde-desktop.iso  
 # on 700MB cd-rw disk size of iso is important to me
 # execute as root or with sudo
-#
+# run startx as normal user after successful installation of packages
 
-apt-get update && apt-get install -y iceweasel lightdm xcfe4 ruby ruby-dev make build-essential jekyll && startx
+apt-get update && apt-get install -y iceweasel lightdm xfce4 ruby ruby-dev make build-essential jekyll
