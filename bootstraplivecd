@@ -6,7 +6,7 @@
 # into distro with desktop, since I am burning debian-live-x.x.x-amd64-lxde-desktop.iso  
 # on 700MB cd-rw disk size of iso is important to me
 # execute with sudo
-# run startx after successful installation of packages
+# run startx as normal user after successful installation of packages
 
 # resynchronize the package index files from their sources
 # and install dependencies for jekyll, xfce4 keyboard pluting
@@ -21,5 +21,8 @@ if [ $? -ne 0 ]; then
     apt-get install -f -y
 fi
 
+mv /home/user/.config/xfce4 /home/user/.config/xfce4.backup
+cp -r ./xfce4 /home/user/.config/
+chown user:user /home/user/.config/xfce4
 
 #vim:ts=4
