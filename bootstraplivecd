@@ -9,17 +9,19 @@
 # run startx as normal user after successful installation of packages
 
 # resynchronize the package index files from their sources
-# and install dependencies for jekyll, xfce4 keyboard pluting
-apt-get update && apt-get install -y iceweasel lightdm xfce4 && \
-ruby ruby-dev make build-essential jekyll xfce4-xkb-plugin
-
 # install google chrome
+apt-get update && \
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
 dpkg -i google-chrome*.deb
 
 if [ $? -ne 0 ]; then
     apt-get install -f -y
 fi
+
+# resynchronize the package index files from their sources
+# and install dependencies for jekyll, xfce4 keyboard pluting
+apt-get install -y iceweasel lightdm xfce4 \
+ruby ruby-dev make build-essential jekyll xfce4-xkb-plugin
 
 mkdir -p /home/user/.config/xfce4
 cp -R ./xfce4 /home/user/.config/
