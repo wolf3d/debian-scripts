@@ -21,8 +21,8 @@ if [ $? -ne 0 ]; then
     apt-get install -f -y
 fi
 
-mv /home/user/.config/xfce4 /home/user/.config/xfce4.backup
-cp -r ./xfce4 /home/user/.config/
-chown user:user /home/user/.config/xfce4
+mkdir -p /home/user/.config/xfce4
+cp -R ./xfce4 /home/user/.config/
+chown -R user:user /home/user/.config
 
 #vim:ts=4
