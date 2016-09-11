@@ -7,6 +7,7 @@
 # on 700MB cd-rw disk size of iso is important to me
 # execute with sudo
 # run startx as normal user after successful installation of packages
+#
 
 # resynchronize the package index files from their sources
 # and install google chrome
