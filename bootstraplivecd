@@ -35,4 +35,8 @@ mkdir -p /home/user/.config/xfce4
 cp -R ./xfce4 /home/user/.config/
 chown -R user:user /home/user/.config
 
+if [ -f /home/user/Desktop/debian-installer-launcher.desktop ]; then
+    rm /home/user/Desktop/debian-installer-launcher.desktop
+fi
+
 #vim:ts=4
