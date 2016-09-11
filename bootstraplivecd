@@ -22,11 +22,13 @@ fi
 # resynchronize the package index files from their sources
 # xfce4 packages and dependencies for jekyll
  
-apt-get install --no-install-recommends -y iceweasel lightdm \
+apt-get install --no-install-recommends -y \
+xserver-xorg xserver-xorg-core xfonts-base xinit x11-xserver-utils lightdm \
 xfce4-panel xfdesktop4 xfwm4 xfce4-settings xfce4-session \
-xfce4-power-manager xfce4-terminal xfce4-taskmanager xfce4-xkb-plugin\
-thunar gvfs gvfs-backends policykit-1 udisks2\
-ruby ruby-dev make build-essential jekyll
+xfce4-power-manager xfce4-terminal xfce4-taskmanager xfce4-xkb-plugin \
+tango-icon-theme thunar gvfs gvfs-backends policykit-1 udisks2 \
+ruby ruby-dev make build-essential jekyll \
+iceweasel
 
 mkdir -p /home/user/.config/xfce4
 cp -R ./xfce4 /home/user/.config/
