@@ -1,11 +1,38 @@
 #!/bin/bash
 
-#
-# this script is supposed to turn debian's live cd 
+# supposed to be executed after booting from live CD
+# this script is supposed to turn debian's live CD
 # debian-live-x.x.x-{amd64,i386}-standard.iso  
 # into distro with desktop, since I am burning debian-live-x.x.x-amd64-lxde-desktop.iso  
 # on 700MB cd-rw disk size of iso is important to me
-# execute as root or with sudo
+# execute with sudo
 # run startx as normal user after successful installation of packages
+#
 
-apt-get update && apt-get install -y iceweasel lightdm xfce4 ruby ruby-dev make build-essential jekyll
+# resynchronize the package index files from their sources
+# and install google chrome
+apt-get update && \
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+dpkg -i google-chrome*.deb
+
+if [ $? -ne 0 ]; then
+    apt-get install -f -y
+fi
+
+
+# resynchronize the package index files from their sources
+# xfce4 packages and dependencies for jekyll
+ 
+apt-get install --no-install-recommends -y \
+xserver-xorg xserver-xorg-core xfonts-base xinit x11-xserver-utils lightdm \
+xfce4-panel xfdesktop4 xfwm4 xfce4-settings xfce4-session \
+xfce4-power-manager xfce4-terminal xfce4-taskmanager xfce4-xkb-plugin \
+tango-icon-theme thunar gvfs gvfs-backends policykit-1 udisks2 \
+ruby ruby-dev make build-essential jekyll \
+iceweasel xfce4-battery-plugin
+
+mkdir -p /home/user/.config/xfce4
+cp -R ./xfce4 /home/user/.config/
+chown -R user:user /home/user/.config
+
+#vim:ts=4
