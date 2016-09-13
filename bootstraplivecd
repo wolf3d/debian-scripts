@@ -30,7 +30,7 @@ xfce4-power-manager xfce4-terminal xfce4-taskmanager xfce4-xkb-plugin \
 tango-icon-theme thunar gvfs gvfs-backends policykit-1 udisks2 \
 ruby-full ruby-dev make build-essential iceweasel \
 xfce4-battery-plugin mousepad xarchiver && \
-gem install jekyll
+gem install jekyll kramdown jekyll-paginate jekyll-gist
 
 mkdir -p /home/user/.config/xfce4
 cp -R ./xfce4 /home/user/.config/
