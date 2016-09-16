@@ -30,7 +30,7 @@ xfce4-power-manager xfce4-terminal xfce4-taskmanager xfce4-xkb-plugin \
 tango-icon-theme thunar gvfs gvfs-backends policykit-1 udisks2 \
 ruby2.1 ruby2.1-dev:amd64 ruby2.1-doc ruby2.1-tcltk make build-essential iceweasel \
 xfce4-battery-plugin mousepad xarchiver && \
-sudo gem install bundler && \
+sudo gem2.1 install bundler && \
 cd ./doctor-jekyll && bundle install
 
 sudo mkdir -p /home/user/.config/xfce4
