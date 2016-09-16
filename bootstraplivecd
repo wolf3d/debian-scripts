@@ -11,59 +11,36 @@
 
 # resynchronize the package index files from their sources
 # and install google chrome
-apt-get update && \
+sudo apt-get update && \
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-dpkg -i google-chrome*.deb
+sudo dpkg -i google-chrome*.deb
 
 if [ $? -ne 0 ]; then
-    apt-get install -f -y
+    sudo apt-get install -f -y
 fi
 
 
 # resynchronize the package index files from their sources
 # xfce4 packages and dependencies for jekyll
  
-apt-get install --no-install-recommends -y \
+sudo apt-get install --no-install-recommends -y \
 xserver-xorg xserver-xorg-core xfonts-base xinit x11-xserver-utils lightdm \
 xfce4-panel xfdesktop4 xfwm4 xfce4-settings xfce4-session \
 xfce4-power-manager xfce4-terminal xfce4-taskmanager xfce4-xkb-plugin \
 tango-icon-theme thunar gvfs gvfs-backends policykit-1 udisks2 \
-ruby-full ruby-dev make build-essential iceweasel \
+ruby2.1 ruby2.1-dev:amd64 ruby2.1-doc ruby2.1-tcltk make build-essential iceweasel \
 xfce4-battery-plugin mousepad xarchiver && \
-gem install liquid-3.0.6 \
-kramdown-1.12.0 \
-mercenary-0.3.6 \
-safe_yaml-1.0.4 \
-colorator-1.1.0 \
-rouge-1.11.1 \
-ffi-1.9.14 \
-rb-inotify-0.9.7 \
-rb-fsevent-0.9.7 \
-sass-listen-3.0.7 \
-sass-3.5.0.pre.rc.1 \
-jekyll-sass-converter-1.4.0 \
-listen-3.0.8 \
-jekyll-watch-1.5.0 \
-forwardable-extended-2.6.0 \
-pathutil-0.14.0 \
-jekyll-3.2.1 \
-kramdown-1.12.0 \
-jekyll-paginate-1.1.0 \
-addressable-2.4.0 \
-multipart-post-2.0.0 \
-faraday-0.9.2 \
-sawyer-0.7.0 \
-octokit-4.3.0 \
-jekyll-gist-1.4.0
+sudo gem install bundler && \
+cd ./doctor-jekyll && bundle install
 
-mkdir -p /home/user/.config/xfce4
-mkdir -p /home/user/wallpapers
-cp -R ./xfce4 /home/user/.config/
-cp ./xfce4/XdQawzB.png /home/user/wallpapers
-chown -R user:user /home/user/.config /home/user/wallpapers
+sudo mkdir -p /home/user/.config/xfce4
+sudo mkdir -p /home/user/wallpapers
+sudo cp -R ./xfce4 /home/user/.config/
+sudo cp ./xfce4/XdQawzB.png /home/user/wallpapers
+sudo chown -R user:user /home/user/.config /home/user/wallpapers
 
 if [ -f /home/user/Desktop/debian-installer-launcher.desktop ]; then
-    rm /home/user/Desktop/debian-installer-launcher.desktop
+    sudo rm -f /home/user/Desktop/debian-installer-launcher.desktop
 fi
 
 #vim:ts=4
