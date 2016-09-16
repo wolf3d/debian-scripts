@@ -11,33 +11,37 @@
 
 # resynchronize the package index files from their sources
 # and install google chrome
-apt-get update && \
+sudo apt-get update && \
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-dpkg -i google-chrome*.deb
+sudo dpkg -i google-chrome*.deb
 
 if [ $? -ne 0 ]; then
-    apt-get install -f -y
+    sudo apt-get install -f -y
 fi
 
 
 # resynchronize the package index files from their sources
 # xfce4 packages and dependencies for jekyll
  
-apt-get install --no-install-recommends -y \
+sudo apt-get install --no-install-recommends -y \
 xserver-xorg xserver-xorg-core xfonts-base xinit x11-xserver-utils lightdm \
 xfce4-panel xfdesktop4 xfwm4 xfce4-settings xfce4-session \
 xfce4-power-manager xfce4-terminal xfce4-taskmanager xfce4-xkb-plugin \
 tango-icon-theme thunar gvfs gvfs-backends policykit-1 udisks2 \
-ruby-full ruby-dev make build-essential iceweasel \
+ruby2.1 ruby2.1-dev:amd64 ruby2.1-doc ruby2.1-tcltk make build-essential iceweasel \
 xfce4-battery-plugin mousepad xarchiver && \
-gem install jekyll kramdown jekyll-paginate jekyll-gist
+sudo gem2.1 install bundler && \
+cd ./doctor-jekyll && bundle install
 
-mkdir -p /home/user/.config/xfce4
-cp -R ./xfce4 /home/user/.config/
-chown -R user:user /home/user/.config
+cd /home/user/debian-scripts
+sudo mkdir -p /home/user/.config/xfce4
+sudo mkdir -p /home/user/wallpapers
+sudo cp -R ./xfce4 /home/user/.config/
+sudo cp ./xfce4/XdQawzB.png /home/user/wallpapers
+sudo chown -R user:user /home/user/.config /home/user/wallpapers
 
 if [ -f /home/user/Desktop/debian-installer-launcher.desktop ]; then
-    rm /home/user/Desktop/debian-installer-launcher.desktop
+    sudo rm -f /home/user/Desktop/debian-installer-launcher.desktop
 fi
 
 #vim:ts=4
