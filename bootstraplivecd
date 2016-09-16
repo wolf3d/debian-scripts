@@ -33,6 +33,7 @@ xfce4-battery-plugin mousepad xarchiver && \
 sudo gem2.1 install bundler && \
 cd ./doctor-jekyll && bundle install
 
+cd /home/user/debian-scripts
 sudo mkdir -p /home/user/.config/xfce4
 sudo mkdir -p /home/user/wallpapers
 sudo cp -R ./xfce4 /home/user/.config/
