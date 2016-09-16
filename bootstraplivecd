@@ -33,8 +33,10 @@ xfce4-battery-plugin mousepad xarchiver && \
 gem install jekyll kramdown jekyll-paginate jekyll-gist
 
 mkdir -p /home/user/.config/xfce4
+mkdir -p /home/user/wallpapers
 cp -R ./xfce4 /home/user/.config/
-chown -R user:user /home/user/.config
+cp ./xfce4/XdQawzB.png /home/user/wallpapers
+chown -R user:user /home/user/.config /home/user/wallpapers
 
 if [ -f /home/user/Desktop/debian-installer-launcher.desktop ]; then
     rm /home/user/Desktop/debian-installer-launcher.desktop
