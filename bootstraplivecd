@@ -27,7 +27,7 @@ sudo apt-get install --no-install-recommends -y \
 xserver-xorg xserver-xorg-core xfonts-base xinit x11-xserver-utils lightdm \
 xfce4-panel xfdesktop4 xfwm4 xfce4-settings xfce4-session \
 xfce4-power-manager xfce4-terminal xfce4-taskmanager xfce4-xkb-plugin \
-tango-icon-theme thunar gvfs gvfs-backends policykit-1 udisks2 \
+tango-icon-theme thunar gvfs gvfs-backends policykit-1 udisks2 ntfs-3g \
 ruby2.1 ruby2.1-dev:amd64 ruby2.1-doc ruby2.1-tcltk make build-essential iceweasel \
 xfce4-battery-plugin mousepad xarchiver zlib1g-dev squashfs-tools isomaster && \
 sudo gem2.1 install bundler && \
