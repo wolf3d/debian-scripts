@@ -16,4 +16,5 @@ wget -qO- "$SDKLINK" | tar -zxv -C /opt/ && echo y \
 | /opt/android-sdk-linux/tools/android update sdk --all --filter \
 platform-tools,build-tools-20.0.0 --no-ui --force && cd /opt &&\
  sudo chown -R $USER:$USER android-sdk-linux && mkdir -p \
-"/home/$USER/Downloads" && cd "/home/$USER/Downloads" && wget "$STUDIOLINK"
+"/home/$USER/Downloads" && cd "/home/$USER/Downloads" && wget "$STUDIOLINK" &&\
+unzip "$STUDIOLINK" -d /opt && cd /opt && sudo chown -R $USER:$USER android-studio
