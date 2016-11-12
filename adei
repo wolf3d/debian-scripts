@@ -25,3 +25,17 @@ sudo chown -R $USER:$USER android-sdk-linux && mkdir -p \
 "/home/$USER/Downloads" && cd "/home/$USER/Downloads" && wget "$STUDIOLINK" && \
 sudo chown -R $USER:$USER "/home/$USER/Downloads"
 unzip "$STUDIOZIP" -d /opt && cd /opt && sudo chown -R $USER:$USER android-studio
+
+if [ -f "$PWD/adei.bash" ]; then
+
+    if [ -f "/home/$USER/.bashrc" ]; then    
+        
+        mv "/home/$USER/.bashrc" "/home/$USER/.bashrc.bk"
+        cat "/home/$USER/.bashrc.bk" "$PWD/adei.bash" > "/home/$USER/.bashrc"
+        chown $USER:$USER "/home/$USER/.bashrc"
+        chmod 644 "/home/$USER/.bashrc"
+
+    fi
+fi
+
+#vim:ts=4
