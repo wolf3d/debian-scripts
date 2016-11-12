@@ -11,6 +11,7 @@ SDKLINK="https://dl.google.com/android/$SDK"
 NDKLINK="https://dl.google.com/android/repository/$NDK"
 STUDIOLINK="https://dl.google.com/dl/android/studio/ide-zips/2.2.1.0/android-studio-ide-145.3330264-linux.zip"
 STUDIOZIP=$(echo $STUDIOLINK | rev | cut -d '/' -f 1 | rev)
+SCRIPTHOME="$PWD"
 
 dpkg --add-architecture i386 && apt-get update && \
 apt-get install -y openjdk-7-jre-headless lib32z1 \
@@ -26,12 +27,12 @@ sudo chown -R $USER:$USER android-sdk-linux && mkdir -p \
 sudo chown -R $USER:$USER "/home/$USER/Downloads"
 unzip "$STUDIOZIP" -d /opt && cd /opt && sudo chown -R $USER:$USER android-studio
 
-if [ -f "$PWD/adei.bash" ]; then
+if [ -f "$SCRIPTHOME/adei.bash" ]; then
 
     if [ -f "/home/$USER/.bashrc" ]; then    
         
         mv "/home/$USER/.bashrc" "/home/$USER/.bashrc.bk"
-        cat "/home/$USER/.bashrc.bk" "$PWD/adei.bash" > "/home/$USER/.bashrc"
+        cat "/home/$USER/.bashrc.bk" "$SCRIPTHOME/adei.bash" > "/home/$USER/.bashrc"
         chown $USER:$USER "/home/$USER/.bashrc"
         chmod 644 "/home/$USER/.bashrc"
 
