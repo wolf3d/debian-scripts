@@ -5,9 +5,13 @@
 #
 
 USER=$(who am i | cut -d ' ' -f 1)
-SDKLINK="https://dl.google.com/android/android-sdk_r24.4.1-linux.tgz"
+NDK="android-ndk-r13b-linux-x86_64.zip"
+SDK="android-sdk_r24.4.1-linux.tgz"
+SDKLINK="https://dl.google.com/android/$SDK"
+NDKLINK="https://dl.google.com/android/repository/$NDK"
 STUDIOLINK="https://dl.google.com/dl/android/studio/ide-zips/2.2.1.0/android-studio-ide-145.3330264-linux.zip"
 STUDIOZIP=$(echo $STUDIOLINK | rev | cut -d '/' -f 1 | rev)
+SCRIPTHOME="$PWD"
 
 dpkg --add-architecture i386 && apt-get update && \
 apt-get install -y openjdk-7-jre-headless lib32z1 \
@@ -15,8 +19,24 @@ lib32stdc++6 lib32gcc1 lib32tinfo5 libc6-i386 \
 lib32ncurses5 libbz2-dev:i386 g++-multilib && \
 wget -qO- "$SDKLINK" | tar -zxv -C /opt/ && echo y \
 | /opt/android-sdk-linux/tools/android update sdk --all --filter \
-platform-tools,build-tools-20.0.0 --no-ui --force && cd /opt && \
+platform-tools,build-tools-20.0.0 --no-ui --force && \
+wget "$NDKLINK" -O "$NDK" && unzip "$NDK" -d /opt && cd /opt && \
+sudo chown -R $USER:$USER android-ndk-* && \
 sudo chown -R $USER:$USER android-sdk-linux && mkdir -p \
 "/home/$USER/Downloads" && cd "/home/$USER/Downloads" && wget "$STUDIOLINK" && \
 sudo chown -R $USER:$USER "/home/$USER/Downloads"
 unzip "$STUDIOZIP" -d /opt && cd /opt && sudo chown -R $USER:$USER android-studio
+
+if [ -f "$SCRIPTHOME/adei.bash" ]; then
+
+    if [ -f "/home/$USER/.bashrc" ]; then    
+        
+        mv "/home/$USER/.bashrc" "/home/$USER/.bashrc.bk"
+        cat "/home/$USER/.bashrc.bk" "$SCRIPTHOME/adei.bash" > "/home/$USER/.bashrc"
+        chown $USER:$USER "/home/$USER/.bashrc"
+        chmod 644 "/home/$USER/.bashrc"
+
+    fi
+fi
+
+#vim:ts=4
